@@ -379,12 +379,149 @@
             display: none;
         }
 
+        select,
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+        }
+
+        .field-label {
+            display: block;
+            color: #93c5fd;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin: 14px 0 6px;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+        }
+
+        .new-campaign {
+            display: none;
+            margin-top: 12px;
+            gap: 10px;
+        }
+
+        .new-campaign.visible {
+            display: flex;
+        }
+
+        .connection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #64748b;
+            margin-right: 8px;
+        }
+
+        .dot.on {
+            background: #34d399;
+            box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.18);
+        }
+
+        .dot.off {
+            background: #f87171;
+        }
+
+        .address {
+            font-family: Consolas, monospace;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #f8fafc;
+            word-break: break-all;
+            white-space: pre-line;
+        }
+
+        .hint {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        .warning-box {
+            display: none;
+            margin-top: 12px;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            background: rgba(251, 191, 36, 0.1);
+            color: #fde68a;
+            border-radius: 10px;
+            padding: 12px;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .error-box {
+            display: none;
+            margin-top: 12px;
+            border: 1px solid rgba(248, 113, 113, 0.5);
+            background: rgba(248, 113, 113, 0.1);
+            color: #fecaca;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .pending-list {
+            margin-top: 12px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .pending-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 9px;
+            padding: 9px 12px;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+        }
+
+        .log-box {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .log-line {
+            padding: 2px 0;
+        }
+
+        .log-line.success { color: #34d399; }
+        .log-line.error { color: #f87171; }
+        .log-line.warning { color: #fbbf24; }
+
+        .log-time {
+            color: #64748b;
+            margin-right: 8px;
+        }
+
         @media (max-width: 1000px) {
             .grid {
                 grid-template-columns: 1fr;
             }
 
-            .summary-grid {
+            .summary-grid,
+            .connection-grid,
+            .field-row {
                 grid-template-columns: repeat(2, 1fr);
             }
 
@@ -399,6 +536,7 @@
         }
     </style>
 </head>
+
 
 <body>
     <div class="page">
@@ -436,501 +574,547 @@
                     </h1>
 
                     <p>
-                        Pantalla dedicada al ingreso de información multiespectral:
-                        importación de carpetas RedEdge, recepción desde cámara o bridge,
-                        validación de capturas y asociación a una campaña.
+                        Recepción por Wi-Fi de las imágenes de la cámara MicaSense RedEdge
+                        enviadas por el módulo de comunicación ESP32-C5. Cada captura que
+                        reúne sus 5 bandas se valida y se guarda en la campaña destino.
                     </p>
                 </div>
 
                 <div class="status-group">
-                    <span class="status-pill">
-                        Modo demo
+                    <span id="pillDevice" class="status-pill">
+                        <span id="pillDeviceDot" class="dot"></span>ESP32 sin señal
                     </span>
-                    <span class="status-pill">
-                        Procesamiento deshabilitado
-                    </span>
-                    <span class="status-pill">
-                        RedEdge preparado
+                    <span id="pillReception" class="status-pill">
+                        Recepción detenida
                     </span>
                 </div>
             </header>
 
-            <section class="destination-card">
-                <div>
-                    <h2 class="destination-title">
+            <section class="grid">
+
+                <article class="card">
+                    <h2>
                         Campaña destino
                     </h2>
 
-                    <div class="destination-code">
-                        CP-20260907-0006
-                    </div>
-
-                    <div class="destination-description">
-                        Campaña validada para demostración PE2 · Sensor RedEdge-3 ·
-                        335 capturas asociadas al flujo multiespectral.
-                    </div>
-                </div>
-
-                <a
-                    class="button"
-                    href="/campaigns/6"
-                >
-                    Ver campaña
-                </a>
-            </section>
-
-            <section class="grid">
-                <article class="card">
-                    <h2>
-                        Importar carpeta RedEdge
-                    </h2>
-
                     <p>
-                        Selecciona una carpeta local con imágenes multibanda para validar
-                        estructura, bandas disponibles y cantidad de archivos antes de asociarla
-                        a una campaña.
+                        Elige la campaña multiespectral donde se guardarán las capturas
+                        recibidas y el tipo de captura.
                     </p>
 
-                    <input
-                        id="folderInput"
-                        type="file"
-                        webkitdirectory
-                        multiple
-                    >
+                    <div class="field-row">
+                        <div>
+                            <label class="field-label" for="campaignSelect">Campaña</label>
+                            <select id="campaignSelect">
+                                <option value="">Cargando campañas...</option>
+                            </select>
+                        </div>
 
-                    <div class="button-row">
+                        <div>
+                            <label class="field-label" for="roleSelect">Tipo de captura</label>
+                            <select id="roleSelect">
+                                <option value="FLIGHT">Vuelo</option>
+                                <option value="CALIBRATION">Calibración (panel)</option>
+                                <option value="UNKNOWN">Sin clasificar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="newCampaignBox" class="new-campaign">
+                        <input
+                            id="newCampaignName"
+                            type="text"
+                            placeholder="Nombre de la nueva campaña"
+                            maxlength="120"
+                        >
                         <button
-                            id="selectFolderButton"
+                            id="createCampaignButton"
                             class="button primary"
                             type="button"
                         >
-                            Seleccionar carpeta
-                        </button>
-
-                        <button
-                            id="validateFolderButton"
-                            class="button"
-                            type="button"
-                            disabled
-                        >
-                            Validar lote
+                            Crear
                         </button>
                     </div>
-
-                    <div class="summary-grid">
-                        <div class="metric">
-                            <div class="metric-label">Archivos</div>
-                            <div id="fileCount" class="metric-value">--</div>
-                        </div>
-
-                        <div class="metric">
-                            <div class="metric-label">Bandas</div>
-                            <div id="bandCount" class="metric-value">--</div>
-                        </div>
-
-                        <div class="metric">
-                            <div class="metric-label">Capturas</div>
-                            <div id="captureCount" class="metric-value">--</div>
-                        </div>
-
-                        <div class="metric">
-                            <div class="metric-label">Estado</div>
-                            <div id="folderStatus" class="metric-value">--</div>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="card">
-                    <h2>
-                        Recepción desde cámara
-                    </h2>
-
-                    <p>
-                        Simulación visual del flujo de recepción desde cámara o módulo bridge.
-                        Esta sección representa el avance de transmisión antes de enviar al usuario
-                        a la campaña completada.
-                    </p>
 
                     <div class="button-row">
                         <button
                             id="startReceptionButton"
                             class="button primary"
                             type="button"
+                            disabled
                         >
                             Iniciar recepción
+                        </button>
+
+                        <button
+                            id="stopReceptionButton"
+                            class="button"
+                            type="button"
+                            style="display: none;"
+                        >
+                            Detener recepción
+                        </button>
+
+                        <button
+                            id="toggleNewCampaignButton"
+                            class="button"
+                            type="button"
+                        >
+                            Nueva campaña
                         </button>
 
                         <a
                             id="viewCampaignButton"
                             class="button"
-                            href="/campaigns/6"
+                            href="/campaigns"
                             style="display: none;"
                         >
-                            Ver campaña completada
+                            Ver campaña
                         </a>
                     </div>
 
-                    <div class="progress-wrap">
-                        <div class="progress-label">
-                            <span id="progressStatus">Esperando inicio</span>
-                            <span id="progressText">0 / 335</span>
+                    <div id="errorBox" class="error-box"></div>
+                </article>
+
+                <article class="card">
+                    <h2>
+                        Conexión con el módulo ESP32
+                    </h2>
+
+                    <p>
+                        Configura en el firmware del ESP32 la dirección de esta laptop.
+                        La laptop y el ESP32 deben estar en la misma red Wi-Fi.
+                    </p>
+
+                    <div class="connection-grid">
+                        <div class="metric">
+                            <div class="metric-label">Dirección para el ESP32</div>
+                            <div id="serverAddress" class="address">--</div>
                         </div>
 
-                        <div class="progress-bar">
-                            <div
-                                id="progressFill"
-                                class="progress-fill"
-                            ></div>
+                        <div class="metric">
+                            <div class="metric-label">Estado del módulo</div>
+                            <div class="metric-value" style="font-size: 1.05rem;">
+                                <span id="deviceDot" class="dot"></span><span id="deviceState">Sin señal</span>
+                            </div>
+                            <div id="deviceDetail" class="hint"></div>
                         </div>
                     </div>
 
-                    <div
-                        id="receptionLog"
-                        class="log-box"
-                    >
-                        Sistema listo para iniciar recepción.
+                    <div class="hint">
+                        Envío de cada banda:
+                        <code>POST /api/esp32/upload?filename=IMG_0142_1.tif</code>
+                        con el TIFF como cuerpo. Señal de vida: <code>GET /api/esp32/ping</code>.
+                        Detalles y ejemplo de firmware en el README del repositorio.
                     </div>
 
-                    <div
-                        class="stage-list"
-                        aria-label="Etapas de recepción"
-                    >
-                        <div class="stage-item" data-stage="0">
-                            <span class="stage-marker">1</span>
-                            Conectando con cámara / bridge
-                        </div>
-
-                        <div class="stage-item" data-stage="1">
-                            <span class="stage-marker">2</span>
-                            Recibiendo imágenes multiespectrales
-                        </div>
-
-                        <div class="stage-item" data-stage="2">
-                            <span class="stage-marker">3</span>
-                            Validando bandas RedEdge
-                        </div>
-
-                        <div class="stage-item" data-stage="3">
-                            <span class="stage-marker">4</span>
-                            Asociando capturas a campaña
-                        </div>
-
-                        <div class="stage-item" data-stage="4">
-                            <span class="stage-marker">5</span>
-                            Campaña lista para revisión
-                        </div>
-                    </div>
-
-                    <div
-                        id="transferResult"
-                        class="transfer-result"
-                    >
-                        <h3>
-                            Transferencia completada
-                        </h3>
-
-                        <div class="transfer-result-grid">
-                            <div class="transfer-result-item">
-                                <div class="transfer-result-label">Total recibido</div>
-                                <div class="transfer-result-value">335</div>
-                            </div>
-
-                            <div class="transfer-result-item">
-                                <div class="transfer-result-label">Vuelo</div>
-                                <div class="transfer-result-value">328</div>
-                            </div>
-
-                            <div class="transfer-result-item">
-                                <div class="transfer-result-label">Calibración</div>
-                                <div class="transfer-result-value">7</div>
-                            </div>
-
-                            <div class="transfer-result-item">
-                                <div class="transfer-result-label">Bandas</div>
-                                <div class="transfer-result-value">5</div>
-                            </div>
-
-                            <div class="transfer-result-item">
-                                <div class="transfer-result-label">Estado</div>
-                                <div class="transfer-result-value">Validado</div>
-                            </div>
-                        </div>
+                    <div id="bindingWarning" class="warning-box">
+                        El servidor está escuchando solo en <code>127.0.0.1</code>, así que el ESP32
+                        no podrá conectarse. En el archivo <code>.env</code> cambia
+                        <code>FLASK_HOST=0.0.0.0</code> y reinicia la aplicación.
                     </div>
                 </article>
             </section>
 
+            <section class="card" style="margin-bottom: 18px;">
+                <h2>
+                    Recepción desde cámara
+                </h2>
+
+                <p id="receptionDescription">
+                    Inicia la recepción para que la laptop acepte las imágenes del ESP32.
+                </p>
+
+                <div class="summary-grid">
+                    <div class="metric">
+                        <div class="metric-label">Archivos recibidos</div>
+                        <div id="filesReceived" class="metric-value">0</div>
+                        <div id="bytesReceived" class="hint">0 MB</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-label">Capturas guardadas</div>
+                        <div id="capturesImported" class="metric-value">0</div>
+                        <div class="hint">5 bandas cada una</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-label">Capturas incompletas</div>
+                        <div id="capturesPending" class="metric-value">0</div>
+                        <div class="hint">Esperando bandas</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-label">Errores</div>
+                        <div id="capturesFailed" class="metric-value">0</div>
+                        <div id="lastFile" class="hint">Último archivo: --</div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span id="progressStatus">Esperando inicio</span>
+                        <span id="progressText">Bandas de la captura en curso: 0 / 5</span>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div
+                            id="progressFill"
+                            class="progress-fill"
+                        ></div>
+                    </div>
+                </div>
+
+                <div id="pendingList" class="pending-list"></div>
+
+                <div
+                    id="receptionLog"
+                    class="log-box"
+                >
+                    Sistema listo para iniciar recepción.
+                </div>
+            </section>
+
             <section class="note">
-                <strong>Separación funcional:</strong>
-                Operación UAV se mantiene enfocada en ruta, telemetría y estado del dron.
-                Adquisición de datos centraliza el ingreso de imágenes y la validación del lote.
-                Campañas queda como pantalla de revisión de resultados y productos geoespaciales.
+                <strong>¿Tienes las imágenes en una carpeta?</strong>
+                También puedes cargarlas manualmente desde el detalle de cada campaña
+                (<a href="/campaigns" style="color: #93c5fd;">Campañas</a> → abrir campaña →
+                importar carpeta RedEdge).
             </section>
 
         </div>
     </div>
 
     <script>
-        const folderInput =
-            document.getElementById(
-                "folderInput"
-            );
+        const POLL_MS = 1500;
 
-        const selectFolderButton =
-            document.getElementById(
-                "selectFolderButton"
-            );
+        const el = (id) => document.getElementById(id);
 
-        const validateFolderButton =
-            document.getElementById(
-                "validateFolderButton"
-            );
+        const campaignSelect = el("campaignSelect");
+        const roleSelect = el("roleSelect");
+        const startButton = el("startReceptionButton");
+        const stopButton = el("stopReceptionButton");
+        const viewCampaignButton = el("viewCampaignButton");
+        const errorBox = el("errorBox");
+        const receptionLog = el("receptionLog");
 
-        const fileCount =
-            document.getElementById(
-                "fileCount"
-            );
+        let lastStatus = null;
+        let busy = false;
 
-        const bandCount =
-            document.getElementById(
-                "bandCount"
-            );
-
-        const captureCount =
-            document.getElementById(
-                "captureCount"
-            );
-
-        const folderStatus =
-            document.getElementById(
-                "folderStatus"
-            );
-
-        selectFolderButton.addEventListener(
-            "click",
-            () => {
-                folderInput.click();
-            }
-        );
-
-        folderInput.addEventListener(
-            "change",
-            () => {
-                const files =
-                    Array.from(
-                        folderInput.files || []
-                    );
-
-                fileCount.textContent =
-                    files.length || "--";
-
-                const tiffFiles =
-                    files.filter(
-                        file =>
-                            file.name.toLowerCase().endsWith(".tif") ||
-                            file.name.toLowerCase().endsWith(".tiff")
-                    );
-
-                const estimatedCaptures =
-                    Math.floor(
-                        tiffFiles.length / 5
-                    );
-
-                bandCount.textContent =
-                    tiffFiles.length > 0
-                        ? "5"
-                        : "--";
-
-                captureCount.textContent =
-                    estimatedCaptures > 0
-                        ? estimatedCaptures
-                        : "--";
-
-                folderStatus.textContent =
-                    files.length > 0
-                        ? "Listo"
-                        : "--";
-
-                validateFolderButton.disabled =
-                    files.length === 0;
-            }
-        );
-
-        validateFolderButton.addEventListener(
-            "click",
-            () => {
-                folderStatus.textContent =
-                    "Validado";
-            }
-        );
-
-        const startReceptionButton =
-            document.getElementById(
-                "startReceptionButton"
-            );
-
-        const viewCampaignButton =
-            document.getElementById(
-                "viewCampaignButton"
-            );
-
-        const progressFill =
-            document.getElementById(
-                "progressFill"
-            );
-
-        const progressText =
-            document.getElementById(
-                "progressText"
-            );
-
-        const progressStatus =
-            document.getElementById(
-                "progressStatus"
-            );
-
-        const receptionLog =
-            document.getElementById(
-                "receptionLog"
-            );
-
-        function updateReceptionStages(
-            activeStage
-        ) {
-
-            document.querySelectorAll(
-                ".stage-item"
-            ).forEach(
-                (item) => {
-
-                    const stage =
-                        Number(
-                            item.dataset.stage
-                        );
-
-                    item.classList.remove(
-                        "active",
-                        "done"
-                    );
-
-                    if (stage < activeStage) {
-                        item.classList.add(
-                            "done"
-                        );
-                    }
-
-                    if (stage === activeStage) {
-                        item.classList.add(
-                            "active"
-                        );
-                    }
-                }
-            );
+        function showError(message) {
+            errorBox.textContent = message || "";
+            errorBox.style.display = message ? "block" : "none";
         }
 
-        startReceptionButton.addEventListener(
-            "click",
-            () => {
-                startReceptionButton.disabled =
-                    true;
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, {
+                headers: { "Content-Type": "application/json" },
+                ...options,
+            });
 
-                viewCampaignButton.style.display =
-                    "none";
+            let data = {};
 
-                document.getElementById(
-                    "transferResult"
-                ).style.display =
-                    "none";
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = {};
+            }
 
-                let current =
-                    0;
+            if (!response.ok) {
+                throw new Error(
+                    data.msg || `Error ${response.status}`
+                );
+            }
 
-                const total =
-                    335;
+            return data;
+        }
 
-                const stageMessages = [
-                    "Conectando con cámara/bridge...",
-                    "Recibiendo imágenes multiespectrales...",
-                    "Validando bandas RedEdge...",
-                    "Asociando capturas a campaña...",
-                    "Campaña lista para revisión.",
-                ];
+        async function loadCampaigns(selectId = null) {
+            try {
+                const data = await requestJson("/api/campaigns?limit=200");
 
-                receptionLog.textContent =
-                    "Iniciando flujo visual de recepción.\n";
-
-                updateReceptionStages(
-                    0
+                const campaigns = (data.campaigns || []).filter(
+                    (item) => item.sensor_type === "MULTISPECTRAL"
                 );
 
-                const interval =
-                    setInterval(
-                        () => {
-                            current += 17;
+                const previous = selectId ?? campaignSelect.value;
 
-                            if (current >= total) {
-                                current = total;
-                            }
+                campaignSelect.innerHTML = "";
 
-                            const percent =
-                                Math.round(
-                                    current / total * 100
-                                );
+                if (campaigns.length === 0) {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "No hay campañas multiespectrales: crea una";
+                    campaignSelect.appendChild(option);
+                    el("newCampaignBox").classList.add("visible");
+                }
 
-                            const activeStage =
-                                Math.min(
-                                    4,
-                                    Math.floor(
-                                        percent / 25
-                                    )
-                                );
+                for (const campaign of campaigns) {
+                    const option = document.createElement("option");
+                    option.value = campaign.id;
+                    option.textContent =
+                        `${campaign.campaign_code} · ${campaign.name}`;
+                    campaignSelect.appendChild(option);
+                }
 
-                            updateReceptionStages(
-                                activeStage
-                            );
+                if (
+                    previous &&
+                    campaigns.some((item) => String(item.id) === String(previous))
+                ) {
+                    campaignSelect.value = String(previous);
+                }
 
-                            progressFill.style.width =
-                                `${percent}%`;
-
-                            progressText.textContent =
-                                `${current} / ${total}`;
-
-                            progressStatus.textContent =
-                                current < total
-                                    ? stageMessages[activeStage]
-                                    : "Recepción completada";
-
-                            receptionLog.textContent +=
-                                `[${percent}%] ${stageMessages[activeStage]}\n`;
-
-                            if (current === total) {
-                                clearInterval(interval);
-
-                                updateReceptionStages(
-                                    5
-                                );
-
-                                progressStatus.textContent =
-                                    "Recepción completada";
-
-                                receptionLog.textContent +=
-                                    "Validación final completada.\n";
-
-                                receptionLog.textContent +=
-                                    "335 capturas asociadas a CP-20260907-0006.\n";
-
-                                document.getElementById(
-                                    "transferResult"
-                                ).style.display =
-                                    "block";
-
-                                viewCampaignButton.style.display =
-                                    "inline-block";
-                            }
-                        },
-                        300
-                    );
+                updateButtons();
+            } catch (error) {
+                campaignSelect.innerHTML =
+                    '<option value="">No se pudieron cargar las campañas</option>';
+                showError(error.message);
             }
-        );
+        }
+
+        async function createCampaign() {
+            const name = el("newCampaignName").value.trim();
+
+            if (!name) {
+                showError("Escribe un nombre para la campaña.");
+                return;
+            }
+
+            try {
+                showError("");
+
+                const campaign = await requestJson("/api/campaigns", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name,
+                        sensor_type: "MULTISPECTRAL",
+                        sensor_model: "MicaSense RedEdge",
+                    }),
+                });
+
+                el("newCampaignName").value = "";
+                el("newCampaignBox").classList.remove("visible");
+
+                await loadCampaigns(campaign.id);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function startReception() {
+            if (!campaignSelect.value) {
+                showError("Selecciona una campaña destino.");
+                return;
+            }
+
+            busy = true;
+            updateButtons();
+
+            try {
+                showError("");
+
+                const status = await requestJson("/api/reception/start", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        campaign_id: Number(campaignSelect.value),
+                        capture_role: roleSelect.value,
+                    }),
+                });
+
+                render({ ...(lastStatus || {}), ...status });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                busy = false;
+                pollStatus();
+            }
+        }
+
+        async function stopReception() {
+            busy = true;
+            updateButtons();
+
+            try {
+                showError("");
+                await requestJson("/api/reception/stop", { method: "POST" });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                busy = false;
+                pollStatus();
+            }
+        }
+
+        function updateButtons() {
+            const active = Boolean(lastStatus && lastStatus.active);
+
+            startButton.style.display = active ? "none" : "inline-block";
+            stopButton.style.display = active ? "inline-block" : "none";
+
+            startButton.disabled = busy || !campaignSelect.value;
+            stopButton.disabled = busy;
+
+            campaignSelect.disabled = active;
+            roleSelect.disabled = active;
+            el("toggleNewCampaignButton").disabled = active;
+        }
+
+        function formatMegabytes(bytes) {
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        function formatTime(iso) {
+            if (!iso) return "--";
+            return new Date(iso).toLocaleTimeString();
+        }
+
+        function render(status) {
+            lastStatus = status;
+
+            // Módulo ESP32
+            const device = status.device || {};
+            const online = Boolean(device.online);
+
+            el("deviceDot").className = `dot ${online ? "on" : "off"}`;
+            el("pillDeviceDot").className = `dot ${online ? "on" : "off"}`;
+            el("deviceState").textContent = online ? "Conectado" : "Sin señal";
+            el("pillDevice").lastChild.textContent =
+                online ? "ESP32 conectado" : "ESP32 sin señal";
+
+            const details = [];
+            if (device.device_id) details.push(device.device_id);
+            if (device.address) details.push(`IP ${device.address}`);
+            if (device.last_seen_at) {
+                details.push(`última señal ${formatTime(device.last_seen_at)}`);
+            }
+            el("deviceDetail").textContent =
+                details.length ? details.join(" · ") : "Aún no se ha comunicado.";
+
+            // Dirección de la laptop
+            const server = status.server || {};
+            const addresses = server.addresses || [];
+            el("serverAddress").textContent = addresses.length
+                ? addresses.map((ip) => `http://${ip}:${server.port}`).join("\n")
+                : `http://<IP de la laptop>:${server.port || 5050}`;
+            el("bindingWarning").style.display =
+                server.reachable_from_network === false ? "block" : "none";
+
+            // Estado de recepción
+            el("pillReception").textContent = status.active
+                ? `Recibiendo → ${status.campaign_code}`
+                : "Recepción detenida";
+
+            if (status.active) {
+                el("receptionDescription").textContent =
+                    `Recibiendo imágenes hacia ${status.campaign_code}` +
+                    (status.campaign_name ? ` (${status.campaign_name})` : "") +
+                    `. Tipo de captura: ${status.capture_role}.`;
+                if (status.campaign_id) {
+                    campaignSelect.value = String(status.campaign_id);
+                }
+                if (status.capture_role) {
+                    roleSelect.value = status.capture_role;
+                }
+            } else if (status.campaign_code) {
+                el("receptionDescription").textContent =
+                    `Última recepción: ${status.campaign_code}. ` +
+                    "Inicia una nueva recepción cuando el dron esté listo.";
+            }
+
+            el("filesReceived").textContent = status.files_received ?? 0;
+            el("bytesReceived").textContent = formatMegabytes(status.bytes_received || 0);
+            el("capturesImported").textContent = status.captures_imported ?? 0;
+            el("capturesPending").textContent = (status.pending_captures || []).length;
+            el("capturesFailed").textContent = status.captures_failed ?? 0;
+            el("lastFile").textContent = status.last_file
+                ? `Último: ${status.last_file} (${formatTime(status.last_file_at)})`
+                : "Último archivo: --";
+
+            // Progreso de la captura en curso
+            const pending = status.pending_captures || [];
+            const current = pending[pending.length - 1];
+            const bands = current ? current.bands_received : 0;
+
+            el("progressFill").style.width = `${(bands / 5) * 100}%`;
+            el("progressText").textContent =
+                `Bandas de la captura en curso: ${bands} / 5`;
+            el("progressStatus").textContent = !status.active
+                ? (status.captures_imported
+                    ? `Recepción finalizada: ${status.captures_imported} capturas guardadas`
+                    : "Esperando inicio")
+                : current
+                    ? `Recibiendo ${current.capture_key}`
+                    : online
+                        ? "Esperando la siguiente captura del ESP32"
+                        : "Esperando señal del ESP32";
+
+            // Capturas incompletas
+            const pendingList = el("pendingList");
+            pendingList.innerHTML = "";
+            for (const item of pending) {
+                const row = document.createElement("div");
+                row.className = "pending-item";
+
+                const name = document.createElement("span");
+                name.textContent = item.capture_key;
+
+                const missing = document.createElement("span");
+                missing.textContent =
+                    `${item.bands_received}/5 · faltan: ${item.missing_bands.join(", ")}`;
+
+                row.append(name, missing);
+                pendingList.appendChild(row);
+            }
+
+            // Registro de eventos
+            const events = status.events || [];
+            if (events.length) {
+                receptionLog.innerHTML = "";
+                for (const event of events) {
+                    const line = document.createElement("div");
+                    line.className = `log-line ${event.level}`;
+
+                    const time = document.createElement("span");
+                    time.className = "log-time";
+                    time.textContent = formatTime(event.at);
+
+                    const text = document.createElement("span");
+                    text.textContent = event.message;
+
+                    line.append(time, text);
+                    receptionLog.appendChild(line);
+                }
+            }
+
+            // Enlace a la campaña
+            if (status.campaign_id) {
+                viewCampaignButton.href = `/campaigns/${status.campaign_id}`;
+                viewCampaignButton.style.display = "inline-block";
+            }
+
+            updateButtons();
+        }
+
+        async function pollStatus() {
+            try {
+                const status = await requestJson("/api/reception/status");
+                render(status);
+            } catch (error) {
+                el("pillReception").textContent = "Servidor sin respuesta";
+            }
+        }
+
+        campaignSelect.addEventListener("change", updateButtons);
+        startButton.addEventListener("click", startReception);
+        stopButton.addEventListener("click", stopReception);
+        el("createCampaignButton").addEventListener("click", createCampaign);
+        el("toggleNewCampaignButton").addEventListener("click", () => {
+            el("newCampaignBox").classList.toggle("visible");
+            el("newCampaignName").focus();
+        });
+
+        loadCampaigns().then(pollStatus);
+        setInterval(pollStatus, POLL_MS);
     </script>
 </body>
 

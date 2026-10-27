@@ -43,22 +43,37 @@ class Config:
         False
     )
 
-    # Raspberry Pi
-    RPI_IP = os.getenv(
-        "RPI_IP",
-        "172.20.10.3"
+    # Recepción Wi-Fi desde el módulo ESP32-C5 (CULTIVA)
+    #
+    # Carpeta donde se guardan temporalmente los TIFF
+    # recibidos hasta completar las 5 bandas de cada captura.
+    ESP32_RECEPTION_ROOT = os.getenv(
+        "ESP32_RECEPTION_ROOT",
+        "data/esp32_reception",
     )
 
-    RPI_PORT = int(
-        os.getenv("RPI_PORT", "5000")
+    # Clave opcional compartida con el ESP32. Si se define,
+    # cada envío debe incluir la cabecera X-Device-Key.
+    ESP32_DEVICE_KEY = os.getenv(
+        "ESP32_DEVICE_KEY",
+        "",
+    ).strip()
+
+    # Tamaño máximo aceptado por archivo (MB).
+    ESP32_MAX_FILE_MB = float(
+        os.getenv(
+            "ESP32_MAX_FILE_MB",
+            "50",
+        )
     )
 
-    RPI_API_URL = f"http://{RPI_IP}:{RPI_PORT}"
-
-    # Acceso
-    ACCESS_CODE = os.getenv(
-        "ACCESS_CODE",
-        "1234"
+    # Segundos sin noticias del ESP32 para considerarlo
+    # desconectado en la interfaz.
+    ESP32_ONLINE_SECONDS = float(
+        os.getenv(
+            "ESP32_ONLINE_SECONDS",
+            "15",
+        )
     )
 
     # Base de datos

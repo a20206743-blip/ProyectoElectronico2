@@ -14,7 +14,6 @@ class DroneState:
 
     - simulador;
     - DJI Cloud API;
-    - Raspberry Pi;
     - otra integración futura.
     """
 

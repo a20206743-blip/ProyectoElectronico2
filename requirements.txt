@@ -6,5 +6,5 @@ rasterio==1.5.1
 reportlab==5.0.1
 python-dotenv==1.2.3
 SQLAlchemy==2.0.52
-pytest 9.1.1
+pytest==9.1.1
 paho-mqtt>=2,<3

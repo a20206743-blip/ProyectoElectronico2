@@ -151,8 +151,9 @@ def test_pe2_demo_mode_hides_legacy_navigation_but_keeps_direct_routes(
     assert "const PE2_DEMO_MODE =\n    true;" in detail_html
     assert "/api/campaigns/${CAMPAIGN_ID}/products" in detail_html
 
-    # Las rutas antiguas permanecen disponibles directamente.
-    assert client.get("/ground_login").status_code == 200
+    # El historial de vuelos sigue disponible directamente.
+    # El flujo legacy de la Raspberry Pi fue retirado.
+    assert client.get("/ground_login").status_code == 404
     assert client.get("/flight_history").status_code == 200
 
 

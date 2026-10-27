@@ -8,13 +8,50 @@ Copie `.env.example` a `.env` y complete los valores locales. Las variables cons
 
 | Grupo | Variables |
 | --- | --- |
-| Flask y acceso | `FLASK_SECRET_KEY`, `FLASK_HOST`, `FLASK_PORT`, `FLASK_DEBUG`, `ACCESS_CODE` |
-| Raspberry Pi | `RPI_IP`, `RPI_PORT`, `DRONE_TELEMETRY_STALE_SECONDS` |
+| Flask | `FLASK_SECRET_KEY`, `FLASK_HOST`, `FLASK_PORT`, `FLASK_DEBUG` |
+| Recepción Wi-Fi ESP32 | `ESP32_RECEPTION_ROOT`, `ESP32_DEVICE_KEY`, `ESP32_MAX_FILE_MB`, `ESP32_ONLINE_SECONDS` |
+| Dron | `DRONE_TELEMETRY_STALE_SECONDS` |
 | Persistencia | `DATABASE_URL`, `CAMPAIGN_STORAGE_ROOT` |
 | Fotogrametría | `PHOTOGRAMMETRY_BACKEND`, `PROCESSING_ENABLED`, `PE2_DEMO_MODE`, `MOCK_PHOTOGRAMMETRY_DELAY_SECONDS`, `METASHAPE_EXECUTABLE` |
 | Importación RedEdge | `RED_EDGE_STAGING_ROOT`, `RED_EDGE_UPLOAD_BATCH_MAX_FILES`, `RED_EDGE_STAGING_MAX_AGE_HOURS` |
 
 `METASHAPE_EXECUTABLE` solo es obligatorio cuando `PHOTOGRAMMETRY_BACKEND=METASHAPE`. `PROCESSING_ENABLED` es un guard operativo de demostración; no es un sistema de autorización. `PE2_DEMO_MODE` orienta la navegación normal a campañas y oculta enlaces legacy, sin eliminar sus rutas directas.
+
+## Recepción Wi-Fi desde el módulo ESP32-C5
+
+La laptop ya no se conecta a una Raspberry Pi. El módulo de comunicación (ESP32-C5 + W5500) obtiene las imágenes de la cámara MicaSense RedEdge y las envía por Wi-Fi a la laptop, una banda por petición HTTP.
+
+### Preparar la laptop
+
+1. En `.env` use `FLASK_HOST=0.0.0.0`. Con `127.0.0.1` el ESP32 no puede llegar a la laptop.
+2. Conecte la laptop y el ESP32 a la misma red Wi-Fi.
+3. En Windows, la primera vez que inicie Flask acepte el aviso del Firewall para **redes privadas**. Si no apareció, permita el puerto `5050` (TCP) en *Firewall de Windows → Configuración avanzada → Reglas de entrada*.
+4. Inicie Flask y abra **Adquisición de datos**. La pantalla muestra la dirección que debe usar el ESP32, por ejemplo `http://192.168.1.50:5050`.
+5. Elija la campaña destino (MULTISPECTRAL) y el tipo de captura, y pulse **Iniciar recepción**.
+
+Cada vez que llegan las 5 bandas de una captura (`IMG_0142_1.tif` … `IMG_0142_5.tif`), se registra en la campaña con sus datos GPS y fecha leídos de los metadatos MicaSense. Las capturas incompletas se muestran como pendientes y no se guardan.
+
+### Protocolo para el ESP32
+
+| Acción | Petición |
+| --- | --- |
+| Comprobar conexión | `GET /api/esp32/ping` → `{"ok": true, "receiving": true/false}` |
+| Enviar una banda | `POST /api/esp32/upload?filename=IMG_0142_1.tif` con el TIFF como cuerpo (`Content-Type: application/octet-stream`) |
+
+- El nombre también puede ir en la cabecera `X-Filename`.
+- Si la cámara usa varias carpetas SET, envíe además la ruta en `?path=0001SET/000/IMG_0142_1.tif` (o cabecera `X-Path`) para no mezclar capturas con el mismo número.
+- Cabeceras opcionales: `X-Device-Id` (nombre del módulo) y `X-Device-Key` (obligatoria solo si se definió `ESP32_DEVICE_KEY`).
+- También se acepta `multipart/form-data` con el campo `file`.
+
+Respuestas: `200` archivo recibido (el JSON indica si la captura se completó y guardó), `400` archivo inválido (no reintentar), `401` clave incorrecta, `409` la laptop no está recibiendo (reintentar más tarde).
+
+Hay un ejemplo de firmware en `esp32/ejemplo_envio_laptop/ejemplo_envio_laptop.ino`.
+
+Para probar sin el ESP32, desde otra terminal:
+
+```powershell
+curl.exe -X POST "http://127.0.0.1:5050/api/esp32/upload?filename=IMG_0142_1.tif" -H "Content-Type: application/octet-stream" --data-binary "@IMG_0142_1.tif"
+```
 
 ## Demo PE2
 

@@ -14,12 +14,11 @@ def test_data_acquisition_view_is_available():
     for marker in (
         "Adquisición de datos",
         "Campaña destino",
-        "CP-20260907-0006",
-        "Importar carpeta RedEdge",
+        "Conexión con el módulo ESP32",
         "Recepción desde cámara",
         "Iniciar recepción",
-        "Ver campaña completada",
-        "Transferencia completada",
+        "Detener recepción",
+        "Capturas guardadas",
     ):
         assert marker in html
 
@@ -40,31 +39,28 @@ def test_data_acquisition_contains_pe2_navigation():
         'href="/adquisicion_datos"',
         'href="/drone_operation"',
         'href="/mission_routes"',
-        'href="/campaigns/6"',
     ):
         assert href in html
 
     assert 'class="active">Adquisición de datos' in html
 
 
-def test_data_acquisition_describes_visual_reception_flow():
+def test_data_acquisition_uses_real_reception_api():
     app.config["TESTING"] = True
 
     client = app.test_client()
     response = client.get("/adquisicion_datos")
 
-    assert response.status_code == 200
-
     html = response.get_data(as_text=True)
 
     for marker in (
-        "Simulación visual",
-        "cámara o módulo bridge",
-        "Conectando con cámara / bridge",
-        "Recibiendo imágenes multiespectrales",
-        "Validando bandas RedEdge",
-        "Asociando capturas a campaña",
-        "Campaña lista para revisión",
-        "335 capturas asociadas al flujo multiespectral",
+        "/api/reception/status",
+        "/api/reception/start",
+        "/api/reception/stop",
+        "/api/esp32/upload",
     ):
         assert marker in html
+
+    # La simulación anterior fue reemplazada.
+    assert "Simulación visual" not in html
+    assert "335 capturas" not in html
