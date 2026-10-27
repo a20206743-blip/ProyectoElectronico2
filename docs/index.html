@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CULTIVA Adquisición de datos</title>
+<style>
+        html, body { margin: 0; height: 100%; }
+
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+
+        :root {
+            color-scheme: dark;
+        }
+
+        .page {
+            min-height: 100%;
+            padding-block: 32px;
+            padding-left: max(16px, env(safe-area-inset-left, 0px));
+            padding-right: max(16px, env(safe-area-inset-right, 0px));
+        }
+
+        .preview-banner {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: rgba(167, 139, 250, 0.12);
+            border: 1px solid rgba(167, 139, 250, 0.45);
+            color: #e9d5ff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+
+        .preview-banner strong { color: #f5f3ff; }
+
+        .preview-toast {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            background: #1e293b;
+            border: 1px solid #a78bfa;
+            color: #ede9fe;
+            padding: 12px 16px;
+            border-radius: 10px;
+            max-width: calc(100% - 32px);
+            box-sizing: border-box;
+            z-index: 20;
+            font-size: 0.9rem;
+        }
+
+        button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+            outline: 2px solid #93c5fd;
+            outline-offset: 2px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 32px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: #4f46e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .brand-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+
+        .brand-subtitle {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            margin-top: 3px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .nav a.active {
+            background: #1d4ed8;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            color: #bfdbfe;
+            max-width: 780px;
+            line-height: 1.55;
+        }
+
+        .status-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .status-pill {
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .destination-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .destination-title {
+            margin: 0 0 8px;
+            font-size: 1.1rem;
+        }
+
+        .destination-code {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+
+        .destination-description {
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .stage-list {
+            margin-top: 18px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            background: #0f172a;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        .stage-marker {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            font-size: 0.78rem;
+        }
+
+        .stage-item.active {
+            color: #bfdbfe;
+            border-color: #3b82f6;
+        }
+
+        .stage-item.active .stage-marker {
+            background: #1d4ed8;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+
+        .stage-item.done {
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.45);
+        }
+
+        .stage-item.done .stage-marker {
+            background: rgba(16, 185, 129, 0.22);
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.55);
+        }
+
+        .transfer-result {
+            display: none;
+            margin-top: 16px;
+            border: 1px solid rgba(52, 211, 153, 0.45);
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .transfer-result h3 {
+            margin: 0 0 12px;
+            color: #34d399;
+        }
+
+        .transfer-result-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(130px, 1fr)
+                );
+            gap: 10px;
+        }
+
+        .transfer-result-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .transfer-result-label {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .transfer-result-value {
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 8px;
+            font-size: 1.15rem;
+        }
+
+        .card p {
+            margin: 0 0 18px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .button {
+            border: 1px solid #3b82f6;
+            background: transparent;
+            color: #60a5fa;
+            padding: 10px 14px;
+            border-radius: 9px;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .button.primary {
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .metric {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .metric-label {
+            color: #93c5fd;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.35rem;
+            font-weight: 900;
+        }
+
+        .progress-wrap {
+            margin-top: 18px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 14px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.25s ease;
+        }
+
+        .log-box {
+            margin-top: 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 14px;
+            color: #cbd5e1;
+            min-height: 120px;
+            font-family: Consolas, monospace;
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+
+        .note {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            color: #bfdbfe;
+            border-radius: 14px;
+            padding: 16px;
+            line-height: 1.55;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+        }
+
+        .field-label {
+            display: block;
+            color: #93c5fd;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin: 14px 0 6px;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+        }
+
+        .new-campaign {
+            display: none;
+            margin-top: 12px;
+            gap: 10px;
+        }
+
+        .new-campaign.visible {
+            display: flex;
+        }
+
+        .connection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #64748b;
+            margin-right: 8px;
+        }
+
+        .dot.on {
+            background: #34d399;
+            box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.18);
+        }
+
+        .dot.off {
+            background: #f87171;
+        }
+
+        .address {
+            font-family: Consolas, monospace;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #f8fafc;
+            word-break: break-all;
+            white-space: pre-line;
+        }
+
+        .hint {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        .warning-box {
+            display: none;
+            margin-top: 12px;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            background: rgba(251, 191, 36, 0.1);
+            color: #fde68a;
+            border-radius: 10px;
+            padding: 12px;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .error-box {
+            display: none;
+            margin-top: 12px;
+            border: 1px solid rgba(248, 113, 113, 0.5);
+            background: rgba(248, 113, 113, 0.1);
+            color: #fecaca;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .pending-list {
+            margin-top: 12px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .pending-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 9px;
+            padding: 9px 12px;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+        }
+
+        .log-box {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .log-line {
+            padding: 2px 0;
+        }
+
+        .log-line.success { color: #34d399; }
+        .log-line.error { color: #f87171; }
+        .log-line.warning { color: #fbbf24; }
+
+        .simulator-box {
+            margin-top: 16px;
+            border: 1px dashed #475569;
+            border-radius: 12px;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .simulator-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 800;
+        }
+
+        .sim-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #475569;
+            color: #94a3b8;
+        }
+
+        .sim-badge.running {
+            border-color: #a78bfa;
+            color: #ddd6fe;
+            background: rgba(139, 92, 246, 0.18);
+        }
+
+        .sim-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .sim-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-field input {
+            width: 72px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 7px 8px;
+        }
+
+        .sim-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .log-time {
+            color: #64748b;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 1000px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid,
+            .connection-grid,
+            .field-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .topbar,
+            .header {
+                flex-direction: column;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+            }
+        }
+    
+        @media (max-width: 600px) {
+            .summary-grid,
+            .connection-grid,
+            .field-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 { font-size: 1.6rem; }
+
+            .destination-card { flex-direction: column; align-items: stretch; }
+
+            .progress-label { flex-direction: column; gap: 4px; }
+
+            .pending-item { flex-direction: column; gap: 2px; }
+
+            .card, .grid > * { min-width: 0; }
+        }
+
+        .log-box, .address, .hint, code { overflow-wrap: anywhere; }
+
+</style>
+</head>
+<body>
+
+    <div class="page">
+        <div class="container">
+
+            <div class="preview-banner" role="note">
+                <div>
+                    <strong>Vista previa interactiva.</strong>
+                    Todo funciona dentro de tu navegador con datos simulados: crea una campaña,
+                    inicia la recepción y pulsa <strong>Simular ESP32</strong>. Las demás pantallas
+                    (Campañas, visor GIS, Operación UAV) están en la aplicación real que corre en tu laptop.
+                </div>
+            </div>
+
+            <nav class="topbar">
+                <div class="brand">
+                    <div class="brand-badge">
+                        PE2
+                    </div>
+
+                    <div>
+                        <div class="brand-title">
+                            Plataforma multiespectral
+                        </div>
+                        <div class="brand-subtitle">
+                            Adquisición y análisis geoespacial
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav">
+                    <a href="/">Inicio</a>
+                    <a href="/campaigns">Campañas</a>
+                    <a href="/adquisicion_datos" class="active">Adquisición de datos</a>
+                    <a href="/drone_operation">Operación UAV</a>
+                    <a href="/mission_routes">Rutas</a>
+                </div>
+            </nav>
+
+            <header class="header">
+                <div>
+                    <h1>
+                        Adquisición de datos
+                    </h1>
+
+                    <p>
+                        Recepción por Wi-Fi de las imágenes de la cámara MicaSense RedEdge
+                        enviadas por el módulo de comunicación ESP32-C5. Cada captura que
+                        reúne sus 5 bandas se valida y se guarda en la campaña destino.
+                    </p>
+                </div>
+
+                <div class="status-group">
+                    <span id="pillDevice" class="status-pill">
+                        <span id="pillDeviceDot" class="dot"></span>ESP32 sin señal
+                    </span>
+                    <span id="pillReception" class="status-pill">
+                        Recepción detenida
+                    </span>
+                </div>
+            </header>
+
+            <section class="grid">
+
+                <article class="card">
+                    <h2>
+                        Campaña destino
+                    </h2>
+
+                    <p>
+                        Elige la campaña multiespectral donde se guardarán las capturas
+                        recibidas y el tipo de captura.
+                    </p>
+
+                    <div class="field-row">
+                        <div>
+                            <label class="field-label" for="campaignSelect">Campaña</label>
+                            <select id="campaignSelect">
+                                <option value="">Cargando campañas...</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="field-label" for="roleSelect">Tipo de captura</label>
+                            <select id="roleSelect">
+                                <option value="FLIGHT">Vuelo</option>
+                                <option value="CALIBRATION">Calibración (panel)</option>
+                                <option value="UNKNOWN">Sin clasificar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="newCampaignBox" class="new-campaign">
+                        <input
+                            id="newCampaignName"
+                            type="text"
+                            placeholder="Nombre de la nueva campaña"
+                            maxlength="120"
+                        >
+                        <button
+                            id="createCampaignButton"
+                            class="button primary"
+                            type="button"
+                        >
+                            Crear
+                        </button>
+                    </div>
+
+                    <div class="button-row">
+                        <button
+                            id="startReceptionButton"
+                            class="button primary"
+                            type="button"
+                            disabled
+                        >
+                            Iniciar recepción
+                        </button>
+
+                        <button
+                            id="stopReceptionButton"
+                            class="button"
+                            type="button"
+                            style="display: none;"
+                        >
+                            Detener recepción
+                        </button>
+
+                        <button
+                            id="toggleNewCampaignButton"
+                            class="button"
+                            type="button"
+                        >
+                            Nueva campaña
+                        </button>
+
+                        <a
+                            id="viewCampaignButton"
+                            class="button"
+                            href="/campaigns"
+                            style="display: none;"
+                        >
+                            Ver campaña
+                        </a>
+                    </div>
+
+                    <div id="errorBox" class="error-box"></div>
+                </article>
+
+                <article class="card">
+                    <h2>
+                        Conexión con el módulo ESP32
+                    </h2>
+
+                    <p>
+                        Configura en el firmware del ESP32 la dirección de esta laptop.
+                        La laptop y el ESP32 deben estar en la misma red Wi-Fi.
+                    </p>
+
+                    <div class="connection-grid">
+                        <div class="metric">
+                            <div class="metric-label">Dirección para el ESP32</div>
+                            <div id="serverAddress" class="address">--</div>
+                        </div>
+
+                        <div class="metric">
+                            <div class="metric-label">Estado del módulo</div>
+                            <div class="metric-value" style="font-size: 1.05rem;">
+                                <span id="deviceDot" class="dot"></span><span id="deviceState">Sin señal</span>
+                            </div>
+                            <div id="deviceDetail" class="hint"></div>
+                        </div>
+                    </div>
+
+                    <div class="hint">
+                        Envío de cada banda:
+                        <code>POST /api/esp32/upload?filename=IMG_0142_1.tif</code>
+                        con el TIFF como cuerpo. Señal de vida: <code>GET /api/esp32/ping</code>.
+                        Detalles y ejemplo de firmware en el README del repositorio.
+                    </div>
+
+                    <div id="bindingWarning" class="warning-box">
+                        El servidor está escuchando solo en <code>127.0.0.1</code>, así que el ESP32
+                        no podrá conectarse. En el archivo <code>.env</code> cambia
+                        <code>FLASK_HOST=0.0.0.0</code> y reinicia la aplicación.
+                    </div>
+
+                    <div class="simulator-box">
+                        <div class="simulator-title">
+                            Simulador (sin ESP32)
+                            <span id="simulatorBadge" class="sim-badge">Inactivo</span>
+                        </div>
+
+                        <div class="hint" style="margin-top: 4px;">
+                            Envía capturas RedEdge simuladas (5 bandas, con GPS y fecha)
+                            como si llegaran del ESP32. Primero inicia la recepción.
+                        </div>
+
+                        <div class="sim-controls">
+                            <label class="sim-field">
+                                Capturas
+                                <input
+                                    id="simCaptures"
+                                    type="number"
+                                    min="1"
+                                    max="200"
+                                    value="12"
+                                >
+                            </label>
+
+                            <label class="sim-check">
+                                <input id="simDropBand" type="checkbox">
+                                Última captura incompleta
+                            </label>
+                        </div>
+
+                        <div class="button-row" style="margin-top: 10px;">
+                            <button
+                                id="simStartButton"
+                                class="button"
+                                type="button"
+                                disabled
+                            >
+                                Simular ESP32
+                            </button>
+
+                            <button
+                                id="simStopButton"
+                                class="button"
+                                type="button"
+                                style="display: none;"
+                            >
+                                Detener simulación
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="card" style="margin-bottom: 18px;">
+                <h2>
+                    Recepción desde cámara
+                </h2>
+
+                <p id="receptionDescription">
+                    Inicia la recepción para que la laptop acepte las imágenes del ESP32.
+                </p>
+
+                <div class="summary-grid">
+                    <div class="metric">
+                        <div class="metric-label">Archivos recibidos</div>
+                        <div id="filesReceived" class="metric-value">0</div>
+                        <div id="bytesReceived" class="hint">0 MB</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-label">Capturas guardadas</div>
+                        <div id="capturesImported" class="metric-value">0</div>
+                        <div class="hint">5 bandas cada una</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-label">Capturas incompletas</div>
+                        <div id="capturesPending" class="metric-value">0</div>
+                        <div class="hint">Esperando bandas</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-label">Errores</div>
+                        <div id="capturesFailed" class="metric-value">0</div>
+                        <div id="lastFile" class="hint">Último archivo: --</div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span id="progressStatus">Esperando inicio</span>
+                        <span id="progressText">Bandas de la captura en curso: 0 / 5</span>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div
+                            id="progressFill"
+                            class="progress-fill"
+                        ></div>
+                    </div>
+                </div>
+
+                <div id="pendingList" class="pending-list"></div>
+
+                <div
+                    id="receptionLog"
+                    class="log-box"
+                >
+                    Sistema listo para iniciar recepción.
+                </div>
+            </section>
+
+            <section class="note">
+                <strong>¿Tienes las imágenes en una carpeta?</strong>
+                También puedes cargarlas manualmente desde el detalle de cada campaña
+                (<a href="/campaigns" style="color: #93c5fd;">Campañas</a> → abrir campaña →
+                importar carpeta RedEdge).
+            </section>
+
+        </div>
+    </div>
+
+
+    <div id="previewToast" class="preview-toast" role="status" hidden>Esa pantalla está en la aplicación real. En esta vista previa solo funciona Adquisición de datos.</div>
+
+<script>
+// Vista previa: reemplaza el servidor Flask por un servidor simulado
+// dentro del navegador. Responde a las mismas rutas /api/... que la
+// aplicación real, para que la pantalla funcione igual.
+(function () {
+    const BAND_NAMES = { 1: "BLUE", 2: "GREEN", 3: "RED", 4: "NIR", 5: "RED_EDGE" };
+    const CENTER = [-12.0834, -76.9420];
+    const BAND_BYTES = 616448;
+
+    let nextCampaignId = 2;
+    const campaigns = [
+        {
+            id: 1,
+            campaign_code: "CP-20261027-0001",
+            name: "Prueba simulada zapallito",
+            sensor_type: "MULTISPECTRAL",
+        },
+    ];
+
+    const state = {
+        active: false,
+        campaign_id: null,
+        campaign_code: null,
+        campaign_name: null,
+        capture_role: null,
+        files_received: 0,
+        bytes_received: 0,
+        captures_imported: 0,
+        captures_failed: 0,
+        duplicates: 0,
+        pending: {},
+        last_file: null,
+        last_file_at: null,
+        last_capture_id: null,
+        events: [],
+        device_last_seen_at: null,
+    };
+
+    const simulator = { running: false, total: 0, sent_captures: 0, sent_files: 0, error: null };
+    let simTimer = null;
+
+    const nowIso = () => new Date().toISOString();
+
+    function addEvent(level, message) {
+        state.events.push({ at: nowIso(), level, message });
+        if (state.events.length > 60) state.events.shift();
+    }
+
+    function position(index) {
+        const perLine = 6, spacing = 10;
+        const line = Math.floor(index / perLine);
+        let step = index % perLine;
+        if (line % 2 === 1) step = perLine - 1 - step;
+        const east = (step - (perLine - 1) / 2) * spacing;
+        const north = -line * spacing;
+        return [
+            CENTER[0] + north / 111320,
+            CENTER[1] + east / (111320 * Math.cos(CENTER[0] * Math.PI / 180)),
+        ];
+    }
+
+    function status() {
+        const last = state.device_last_seen_at ? Date.parse(state.device_last_seen_at) : null;
+        const online = last !== null && Date.now() - last <= 15000;
+        return {
+            active: state.active,
+            campaign_id: state.campaign_id,
+            campaign_code: state.campaign_code,
+            campaign_name: state.campaign_name,
+            capture_role: state.capture_role,
+            files_received: state.files_received,
+            bytes_received: state.bytes_received,
+            captures_imported: state.captures_imported,
+            captures_failed: state.captures_failed,
+            duplicates: state.duplicates,
+            pending_captures: Object.entries(state.pending).map(([key, bands]) => ({
+                capture_key: key,
+                bands_received: bands.length,
+                missing_bands: [1, 2, 3, 4, 5].filter((b) => !bands.includes(b)).map((b) => BAND_NAMES[b]),
+            })),
+            last_file: state.last_file,
+            last_file_at: state.last_file_at,
+            last_capture_id: state.last_capture_id,
+            events: [...state.events].reverse(),
+            device: {
+                online,
+                last_seen_at: state.device_last_seen_at,
+                address: last ? "simulador" : null,
+                device_id: last ? "simulador-esp32" : null,
+            },
+            device_key_required: false,
+            simulator: { ...simulator },
+            server: {
+                addresses: ["192.168.1.50"],
+                port: 5050,
+                host_binding: "0.0.0.0",
+                reachable_from_network: true,
+            },
+        };
+    }
+
+    function receiveBand(setName, index, band) {
+        const key = `${setName}/000/IMG_${String(index).padStart(4, "0")}`;
+        state.device_last_seen_at = nowIso();
+        state.files_received += 1;
+        state.bytes_received += BAND_BYTES;
+        state.last_file = `${key}_${band}.tif`;
+        state.last_file_at = nowIso();
+        const bands = (state.pending[key] = state.pending[key] || []);
+        if (!bands.includes(band)) bands.push(band);
+        if (bands.length === 5) {
+            delete state.pending[key];
+            state.captures_imported += 1;
+            state.last_capture_id = state.captures_imported;
+            const [lat, lon] = position(index);
+            addEvent(
+                "success",
+                `Captura ${key} completa (5 bandas) y guardada en ${state.campaign_code} · GPS ${lat.toFixed(6)}, ${lon.toFixed(6)}.`
+            );
+        }
+    }
+
+    function stopSimulator() {
+        if (simTimer) clearInterval(simTimer);
+        simTimer = null;
+        simulator.running = false;
+    }
+
+    function startSimulator(captures, dropLast) {
+        const total = Number(captures);
+        if (!Number.isInteger(total) || total < 1 || total > 200) {
+            throw [400, "El número de capturas debe estar entre 1 y 200."];
+        }
+        if (!state.active) throw [400, "Primero inicia la recepción hacia una campaña."];
+        if (simulator.running) throw [400, "La simulación ya está en curso."];
+
+        Object.assign(simulator, { running: true, total, sent_captures: 0, sent_files: 0, error: null });
+        const d = new Date();
+        const setName = "SIM" + d.toISOString().replace(/\D/g, "").slice(0, 14) + "SET";
+        let index = 0, band = 1;
+        state.device_last_seen_at = nowIso();
+
+        simTimer = setInterval(() => {
+            if (!state.active) {
+                simulator.error = "La recepción se detuvo durante la simulación.";
+                stopSimulator();
+                return;
+            }
+            const lastBand = dropLast && index === total - 1 ? 4 : 5;
+            receiveBand(setName, index, band);
+            simulator.sent_files += 1;
+            band += 1;
+            if (band > lastBand) {
+                simulator.sent_captures = index + 1;
+                index += 1;
+                band = 1;
+                if (index >= total) stopSimulator();
+            }
+        }, 300);
+    }
+
+    function reply(code, body) {
+        return Promise.resolve(
+            new Response(JSON.stringify(body), {
+                status: code,
+                headers: { "Content-Type": "application/json" },
+            })
+        );
+    }
+
+    window.fetch = function (url, options = {}) {
+        const method = (options.method || "GET").toUpperCase();
+        const path = String(url).split("?")[0];
+        let body = {};
+        try { body = options.body ? JSON.parse(options.body) : {}; } catch (e) { body = {}; }
+
+        try {
+            if (path === "/api/campaigns" && method === "GET") {
+                return reply(200, { campaigns, count: campaigns.length });
+            }
+            if (path === "/api/campaigns" && method === "POST") {
+                if (!body.name || !String(body.name).trim()) throw [400, "El nombre de la campaña es obligatorio."];
+                const id = nextCampaignId++;
+                const campaign = {
+                    id,
+                    campaign_code: `CP-20261027-${String(id).padStart(4, "0")}`,
+                    name: String(body.name).trim(),
+                    sensor_type: "MULTISPECTRAL",
+                };
+                campaigns.unshift(campaign);
+                return reply(201, campaign);
+            }
+            if (path === "/api/reception/status") return reply(200, status());
+            if (path === "/api/reception/start") {
+                if (state.active) throw [409, `Ya hay una recepción activa hacia ${state.campaign_code}. Detenla antes de iniciar otra.`];
+                const campaign = campaigns.find((c) => c.id === Number(body.campaign_id));
+                if (!campaign) throw [400, "Selecciona una campaña válida."];
+                Object.assign(state, {
+                    active: true,
+                    campaign_id: campaign.id,
+                    campaign_code: campaign.campaign_code,
+                    campaign_name: campaign.name,
+                    capture_role: body.capture_role || "FLIGHT",
+                    files_received: 0, bytes_received: 0, captures_imported: 0,
+                    captures_failed: 0, duplicates: 0, pending: {}, events: [],
+                    last_file: null, last_file_at: null,
+                });
+                addEvent("info", `Recepción iniciada hacia ${campaign.campaign_code} (tipo ${state.capture_role}). Esperando imágenes del ESP32...`);
+                return reply(201, status());
+            }
+            if (path === "/api/reception/stop") {
+                stopSimulator();
+                if (!state.active) throw [409, "No hay una recepción activa."];
+                state.active = false;
+                const incomplete = Object.keys(state.pending).length;
+                let message = `Recepción detenida. ${state.captures_imported} capturas guardadas en ${state.campaign_code}.`;
+                if (incomplete) message += ` ${incomplete} captura(s) quedaron incompletas (faltaron bandas) y no se guardaron.`;
+                addEvent(incomplete ? "warning" : "success", message);
+                return reply(200, status());
+            }
+            if (path === "/api/esp32/simulator/start") {
+                startSimulator(body.captures ?? 12, Boolean(body.drop_last_band));
+                return reply(201, { ...simulator });
+            }
+            if (path === "/api/esp32/simulator/stop") {
+                stopSimulator();
+                return reply(200, { ...simulator });
+            }
+        } catch (err) {
+            if (Array.isArray(err)) return reply(err[0], { error: true, msg: err[1] });
+            throw err;
+        }
+        return reply(404, { error: true, msg: "Disponible solo en la aplicación real." });
+    };
+
+    // Los enlaces a otras pantallas solo existen en la app real.
+    document.addEventListener("click", (event) => {
+        const link = event.target.closest('a[href^="/"]');
+        if (!link) return;
+        event.preventDefault();
+        const toast = document.getElementById("previewToast");
+        toast.hidden = false;
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => { toast.hidden = true; }, 3200);
+    });
+})();
+
+</script>
+<script>
+
+        const POLL_MS = 1500;
+
+        const el = (id) => document.getElementById(id);
+
+        const campaignSelect = el("campaignSelect");
+        const roleSelect = el("roleSelect");
+        const startButton = el("startReceptionButton");
+        const stopButton = el("stopReceptionButton");
+        const viewCampaignButton = el("viewCampaignButton");
+        const errorBox = el("errorBox");
+        const receptionLog = el("receptionLog");
+
+        let lastStatus = null;
+        let busy = false;
+
+        function showError(message) {
+            errorBox.textContent = message || "";
+            errorBox.style.display = message ? "block" : "none";
+        }
+
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, {
+                headers: { "Content-Type": "application/json" },
+                ...options,
+            });
+
+            let data = {};
+
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = {};
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.msg || `Error ${response.status}`
+                );
+            }
+
+            return data;
+        }
+
+        async function loadCampaigns(selectId = null) {
+            try {
+                const data = await requestJson("/api/campaigns?limit=200");
+
+                const campaigns = (data.campaigns || []).filter(
+                    (item) => item.sensor_type === "MULTISPECTRAL"
+                );
+
+                const previous = selectId ?? campaignSelect.value;
+
+                campaignSelect.innerHTML = "";
+
+                if (campaigns.length === 0) {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "No hay campañas multiespectrales: crea una";
+                    campaignSelect.appendChild(option);
+                    el("newCampaignBox").classList.add("visible");
+                }
+
+                for (const campaign of campaigns) {
+                    const option = document.createElement("option");
+                    option.value = campaign.id;
+                    option.textContent =
+                        `${campaign.campaign_code} · ${campaign.name}`;
+                    campaignSelect.appendChild(option);
+                }
+
+                if (
+                    previous &&
+                    campaigns.some((item) => String(item.id) === String(previous))
+                ) {
+                    campaignSelect.value = String(previous);
+                }
+
+                updateButtons();
+            } catch (error) {
+                campaignSelect.innerHTML =
+                    '<option value="">No se pudieron cargar las campañas</option>';
+                showError(error.message);
+            }
+        }
+
+        async function createCampaign() {
+            const name = el("newCampaignName").value.trim();
+
+            if (!name) {
+                showError("Escribe un nombre para la campaña.");
+                return;
+            }
+
+            try {
+                showError("");
+
+                const campaign = await requestJson("/api/campaigns", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name,
+                        sensor_type: "MULTISPECTRAL",
+                        sensor_model: "MicaSense RedEdge",
+                    }),
+                });
+
+                el("newCampaignName").value = "";
+                el("newCampaignBox").classList.remove("visible");
+
+                await loadCampaigns(campaign.id);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function startReception() {
+            if (!campaignSelect.value) {
+                showError("Selecciona una campaña destino.");
+                return;
+            }
+
+            busy = true;
+            updateButtons();
+
+            try {
+                showError("");
+
+                const status = await requestJson("/api/reception/start", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        campaign_id: Number(campaignSelect.value),
+                        capture_role: roleSelect.value,
+                    }),
+                });
+
+                render({ ...(lastStatus || {}), ...status });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                busy = false;
+                pollStatus();
+            }
+        }
+
+        async function stopReception() {
+            busy = true;
+            updateButtons();
+
+            try {
+                showError("");
+                await requestJson("/api/reception/stop", { method: "POST" });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                busy = false;
+                pollStatus();
+            }
+        }
+
+        function updateButtons() {
+            const active = Boolean(lastStatus && lastStatus.active);
+
+            startButton.style.display = active ? "none" : "inline-block";
+            stopButton.style.display = active ? "inline-block" : "none";
+
+            startButton.disabled = busy || !campaignSelect.value;
+            stopButton.disabled = busy;
+
+            campaignSelect.disabled = active;
+            roleSelect.disabled = active;
+            el("toggleNewCampaignButton").disabled = active;
+
+            const simulator = (lastStatus && lastStatus.simulator) || {};
+            const simRunning = Boolean(simulator.running);
+
+            el("simStartButton").style.display = simRunning ? "none" : "inline-block";
+            el("simStopButton").style.display = simRunning ? "inline-block" : "none";
+            el("simStartButton").disabled = busy || !active;
+            el("simCaptures").disabled = simRunning;
+            el("simDropBand").disabled = simRunning;
+        }
+
+        async function startSimulator() {
+            busy = true;
+            updateButtons();
+
+            try {
+                showError("");
+
+                await requestJson("/api/esp32/simulator/start", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        captures: Number(el("simCaptures").value || 12),
+                        drop_last_band: el("simDropBand").checked,
+                    }),
+                });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                busy = false;
+                pollStatus();
+            }
+        }
+
+        async function stopSimulator() {
+            try {
+                await requestJson("/api/esp32/simulator/stop", { method: "POST" });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                pollStatus();
+            }
+        }
+
+        function formatMegabytes(bytes) {
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        function formatTime(iso) {
+            if (!iso) return "--";
+            return new Date(iso).toLocaleTimeString();
+        }
+
+        function render(status) {
+            lastStatus = status;
+
+            // Módulo ESP32
+            const device = status.device || {};
+            const online = Boolean(device.online);
+
+            el("deviceDot").className = `dot ${online ? "on" : "off"}`;
+            el("pillDeviceDot").className = `dot ${online ? "on" : "off"}`;
+            el("deviceState").textContent = online ? "Conectado" : "Sin señal";
+            el("pillDevice").lastChild.textContent =
+                online ? "ESP32 conectado" : "ESP32 sin señal";
+
+            const details = [];
+            if (device.device_id) details.push(device.device_id);
+            if (device.address) {
+                details.push(
+                    /^[0-9a-f.:]+$/i.test(device.address)
+                        ? `IP ${device.address}`
+                        : device.address
+                );
+            }
+            if (device.last_seen_at) {
+                details.push(`última señal ${formatTime(device.last_seen_at)}`);
+            }
+            el("deviceDetail").textContent =
+                details.length ? details.join(" · ") : "Aún no se ha comunicado.";
+
+            // Dirección de la laptop
+            const server = status.server || {};
+            const addresses = server.addresses || [];
+            el("serverAddress").textContent = addresses.length
+                ? addresses.map((ip) => `http://${ip}:${server.port}`).join("\n")
+                : `http://<IP de la laptop>:${server.port || 5050}`;
+            el("bindingWarning").style.display =
+                server.reachable_from_network === false ? "block" : "none";
+
+            // Estado de recepción
+            el("pillReception").textContent = status.active
+                ? `Recibiendo → ${status.campaign_code}`
+                : "Recepción detenida";
+
+            if (status.active) {
+                el("receptionDescription").textContent =
+                    `Recibiendo imágenes hacia ${status.campaign_code}` +
+                    (status.campaign_name ? ` (${status.campaign_name})` : "") +
+                    `. Tipo de captura: ${status.capture_role}.`;
+                if (status.campaign_id) {
+                    campaignSelect.value = String(status.campaign_id);
+                }
+                if (status.capture_role) {
+                    roleSelect.value = status.capture_role;
+                }
+            } else if (status.campaign_code) {
+                el("receptionDescription").textContent =
+                    `Última recepción: ${status.campaign_code}. ` +
+                    "Inicia una nueva recepción cuando el dron esté listo.";
+            }
+
+            el("filesReceived").textContent = status.files_received ?? 0;
+            el("bytesReceived").textContent = formatMegabytes(status.bytes_received || 0);
+            el("capturesImported").textContent = status.captures_imported ?? 0;
+            el("capturesPending").textContent = (status.pending_captures || []).length;
+            el("capturesFailed").textContent = status.captures_failed ?? 0;
+            el("lastFile").textContent = status.last_file
+                ? `Último: ${status.last_file} (${formatTime(status.last_file_at)})`
+                : "Último archivo: --";
+
+            // Progreso de la captura en curso
+            const pending = status.pending_captures || [];
+            const current = pending[pending.length - 1];
+            const bands = current ? current.bands_received : 0;
+
+            el("progressFill").style.width = `${(bands / 5) * 100}%`;
+            el("progressText").textContent =
+                `Bandas de la captura en curso: ${bands} / 5`;
+            el("progressStatus").textContent = !status.active
+                ? (status.captures_imported
+                    ? `Recepción finalizada: ${status.captures_imported} capturas guardadas`
+                    : "Esperando inicio")
+                : current
+                    ? `Recibiendo ${current.capture_key}`
+                    : online
+                        ? "Esperando la siguiente captura del ESP32"
+                        : "Esperando señal del ESP32";
+
+            // Capturas incompletas
+            const pendingList = el("pendingList");
+            pendingList.innerHTML = "";
+            for (const item of pending) {
+                const row = document.createElement("div");
+                row.className = "pending-item";
+
+                const name = document.createElement("span");
+                name.textContent = item.capture_key;
+
+                const missing = document.createElement("span");
+                missing.textContent =
+                    `${item.bands_received}/5 · faltan: ${item.missing_bands.join(", ")}`;
+
+                row.append(name, missing);
+                pendingList.appendChild(row);
+            }
+
+            // Registro de eventos
+            const events = status.events || [];
+            if (events.length) {
+                receptionLog.innerHTML = "";
+                for (const event of events) {
+                    const line = document.createElement("div");
+                    line.className = `log-line ${event.level}`;
+
+                    const time = document.createElement("span");
+                    time.className = "log-time";
+                    time.textContent = formatTime(event.at);
+
+                    const text = document.createElement("span");
+                    text.textContent = event.message;
+
+                    line.append(time, text);
+                    receptionLog.appendChild(line);
+                }
+            }
+
+            // Simulador
+            const simulator = status.simulator || {};
+            const simBadge = el("simulatorBadge");
+
+            if (simulator.running) {
+                simBadge.textContent =
+                    `Enviando ${simulator.sent_captures} / ${simulator.total}`;
+                simBadge.className = "sim-badge running";
+            } else if (simulator.error) {
+                simBadge.textContent = "Interrumpido";
+                simBadge.className = "sim-badge";
+                simBadge.title = simulator.error;
+            } else if (simulator.total) {
+                simBadge.textContent =
+                    `Terminado: ${simulator.sent_captures} capturas`;
+                simBadge.className = "sim-badge";
+            } else {
+                simBadge.textContent = "Inactivo";
+                simBadge.className = "sim-badge";
+            }
+
+            // Enlace a la campaña
+            if (status.campaign_id) {
+                viewCampaignButton.href = `/campaigns/${status.campaign_id}`;
+                viewCampaignButton.style.display = "inline-block";
+            }
+
+            updateButtons();
+        }
+
+        async function pollStatus() {
+            try {
+                const status = await requestJson("/api/reception/status");
+                render(status);
+            } catch (error) {
+                el("pillReception").textContent = "Servidor sin respuesta";
+            }
+        }
+
+        campaignSelect.addEventListener("change", updateButtons);
+        startButton.addEventListener("click", startReception);
+        stopButton.addEventListener("click", stopReception);
+        el("simStartButton").addEventListener("click", startSimulator);
+        el("simStopButton").addEventListener("click", stopSimulator);
+        el("createCampaignButton").addEventListener("click", createCampaign);
+        el("toggleNewCampaignButton").addEventListener("click", () => {
+            el("newCampaignBox").classList.toggle("visible");
+            el("newCampaignName").focus();
+        });
+
+        loadCampaigns().then(pollStatus);
+        setInterval(pollStatus, POLL_MS);
+
+</script>
+</body>
+</html>
