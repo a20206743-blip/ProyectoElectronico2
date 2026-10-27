@@ -509,6 +509,68 @@
         .log-line.error { color: #f87171; }
         .log-line.warning { color: #fbbf24; }
 
+        .simulator-box {
+            margin-top: 16px;
+            border: 1px dashed #475569;
+            border-radius: 12px;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .simulator-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 800;
+        }
+
+        .sim-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #475569;
+            color: #94a3b8;
+        }
+
+        .sim-badge.running {
+            border-color: #a78bfa;
+            color: #ddd6fe;
+            background: rgba(139, 92, 246, 0.18);
+        }
+
+        .sim-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .sim-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-field input {
+            width: 72px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 7px 8px;
+        }
+
+        .sim-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .log-time {
             color: #64748b;
             margin-right: 8px;
@@ -712,6 +774,56 @@
                         El servidor está escuchando solo en <code>127.0.0.1</code>, así que el ESP32
                         no podrá conectarse. En el archivo <code>.env</code> cambia
                         <code>FLASK_HOST=0.0.0.0</code> y reinicia la aplicación.
+                    </div>
+
+                    <div class="simulator-box">
+                        <div class="simulator-title">
+                            Simulador (sin ESP32)
+                            <span id="simulatorBadge" class="sim-badge">Inactivo</span>
+                        </div>
+
+                        <div class="hint" style="margin-top: 4px;">
+                            Envía capturas RedEdge simuladas (5 bandas, con GPS y fecha)
+                            como si llegaran del ESP32. Primero inicia la recepción.
+                        </div>
+
+                        <div class="sim-controls">
+                            <label class="sim-field">
+                                Capturas
+                                <input
+                                    id="simCaptures"
+                                    type="number"
+                                    min="1"
+                                    max="200"
+                                    value="12"
+                                >
+                            </label>
+
+                            <label class="sim-check">
+                                <input id="simDropBand" type="checkbox">
+                                Última captura incompleta
+                            </label>
+                        </div>
+
+                        <div class="button-row" style="margin-top: 10px;">
+                            <button
+                                id="simStartButton"
+                                class="button"
+                                type="button"
+                                disabled
+                            >
+                                Simular ESP32
+                            </button>
+
+                            <button
+                                id="simStopButton"
+                                class="button"
+                                type="button"
+                                style="display: none;"
+                            >
+                                Detener simulación
+                            </button>
+                        </div>
                     </div>
                 </article>
             </section>
@@ -957,6 +1069,47 @@
             campaignSelect.disabled = active;
             roleSelect.disabled = active;
             el("toggleNewCampaignButton").disabled = active;
+
+            const simulator = (lastStatus && lastStatus.simulator) || {};
+            const simRunning = Boolean(simulator.running);
+
+            el("simStartButton").style.display = simRunning ? "none" : "inline-block";
+            el("simStopButton").style.display = simRunning ? "inline-block" : "none";
+            el("simStartButton").disabled = busy || !active;
+            el("simCaptures").disabled = simRunning;
+            el("simDropBand").disabled = simRunning;
+        }
+
+        async function startSimulator() {
+            busy = true;
+            updateButtons();
+
+            try {
+                showError("");
+
+                await requestJson("/api/esp32/simulator/start", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        captures: Number(el("simCaptures").value || 12),
+                        drop_last_band: el("simDropBand").checked,
+                    }),
+                });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                busy = false;
+                pollStatus();
+            }
+        }
+
+        async function stopSimulator() {
+            try {
+                await requestJson("/api/esp32/simulator/stop", { method: "POST" });
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                pollStatus();
+            }
         }
 
         function formatMegabytes(bytes) {
@@ -983,7 +1136,13 @@
 
             const details = [];
             if (device.device_id) details.push(device.device_id);
-            if (device.address) details.push(`IP ${device.address}`);
+            if (device.address) {
+                details.push(
+                    /^[0-9a-f.:]+$/i.test(device.address)
+                        ? `IP ${device.address}`
+                        : device.address
+                );
+            }
             if (device.last_seen_at) {
                 details.push(`última señal ${formatTime(device.last_seen_at)}`);
             }
@@ -1086,6 +1245,27 @@
                 }
             }
 
+            // Simulador
+            const simulator = status.simulator || {};
+            const simBadge = el("simulatorBadge");
+
+            if (simulator.running) {
+                simBadge.textContent =
+                    `Enviando ${simulator.sent_captures} / ${simulator.total}`;
+                simBadge.className = "sim-badge running";
+            } else if (simulator.error) {
+                simBadge.textContent = "Interrumpido";
+                simBadge.className = "sim-badge";
+                simBadge.title = simulator.error;
+            } else if (simulator.total) {
+                simBadge.textContent =
+                    `Terminado: ${simulator.sent_captures} capturas`;
+                simBadge.className = "sim-badge";
+            } else {
+                simBadge.textContent = "Inactivo";
+                simBadge.className = "sim-badge";
+            }
+
             // Enlace a la campaña
             if (status.campaign_id) {
                 viewCampaignButton.href = `/campaigns/${status.campaign_id}`;
@@ -1107,6 +1287,8 @@
         campaignSelect.addEventListener("change", updateButtons);
         startButton.addEventListener("click", startReception);
         stopButton.addEventListener("click", stopReception);
+        el("simStartButton").addEventListener("click", startSimulator);
+        el("simStopButton").addEventListener("click", stopSimulator);
         el("createCampaignButton").addEventListener("click", createCampaign);
         el("toggleNewCampaignButton").addEventListener("click", () => {
             el("newCampaignBox").classList.toggle("visible");

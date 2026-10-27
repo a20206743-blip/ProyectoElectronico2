@@ -110,6 +110,11 @@ from services.esp32_reception_service import (
     ReceptionAlreadyActiveError,
 )
 
+from services.esp32_simulator_service import (
+    Esp32SimulatorError,
+    Esp32SimulatorService,
+)
+
 from services.raster_preview_service import (
     InvalidRasterPreviewError,
     RasterPreviewError,
@@ -1257,6 +1262,8 @@ def api_reception_status():
 
     status = Esp32ReceptionService.get_status()
 
+    status["simulator"] = Esp32SimulatorService.status()
+
     status["server"] = {
         "addresses": _local_ipv4_addresses(),
         "port": Config.FLASK_PORT,
@@ -1306,10 +1313,49 @@ def api_reception_start():
 
 
 @app.route(
+    "/api/esp32/simulator/start",
+    methods=["POST"],
+)
+def api_esp32_simulator_start():
+    """
+    Simula al ESP32 mientras no hay hardware: genera capturas
+    RedEdge falsas y las entrega a la recepción activa.
+    """
+
+    data = request.get_json(silent=True) or {}
+
+    try:
+        state = Esp32SimulatorService.start(
+            captures=data.get("captures", 12),
+            band_delay_s=data.get("band_delay_s", 0.3),
+            drop_last_band=data.get("drop_last_band", False),
+        )
+
+    except Esp32SimulatorError as exc:
+        return jsonify({
+            "error": True,
+            "msg": str(exc),
+        }), 400
+
+    return jsonify(state), 201
+
+
+@app.route(
+    "/api/esp32/simulator/stop",
+    methods=["POST"],
+)
+def api_esp32_simulator_stop():
+    return jsonify(Esp32SimulatorService.stop())
+
+
+@app.route(
     "/api/reception/stop",
     methods=["POST"],
 )
 def api_reception_stop():
+
+    # Si el simulador está enviando, se detiene también.
+    Esp32SimulatorService.stop()
 
     try:
         status = Esp32ReceptionService.stop_session()

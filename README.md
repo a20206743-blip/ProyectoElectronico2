@@ -47,7 +47,20 @@ Respuestas: `200` archivo recibido (el JSON indica si la captura se completó y 
 
 Hay un ejemplo de firmware en `esp32/ejemplo_envio_laptop/ejemplo_envio_laptop.ino`.
 
-Para probar sin el ESP32, desde otra terminal:
+### Probar sin el ESP32 (datos simulados)
+
+Mientras no esté listo el hardware hay dos formas de simular al módulo:
+
+1. **Botón "Simular ESP32"** en *Adquisición de datos* (dentro de la tarjeta de conexión). Primero inicie la recepción, elija cuántas capturas enviar y pulse el botón. Si marca *Última captura incompleta*, a la última le faltará una banda para ver cómo se muestra ese caso.
+2. **Por la red**, igual que lo hará el firmware, desde la laptop u otra computadora en el mismo Wi-Fi:
+
+   ```powershell
+   python scripts/simular_esp32.py --url http://192.168.1.50:5050 --capturas 12
+   ```
+
+Las capturas simuladas son TIFF de 5 bandas con los mismos metadatos que la RedEdge (GPS, altitud, fecha, `BandName`, `CaptureId`, `FlightId`). Siguen un recorrido en zigzag sobre la zona de estudio y muestran surcos de plantas sobre suelo; aproximadamente la mitad incluye una zona de plantas con síntomas (menos NIR, más rojo y verde), de modo que el NDVI distingue suelo (~0.2), plantas sanas (~0.85) y con síntomas (~0.45). **Son datos ficticios**: úselos solo para probar el sistema, en campañas separadas de los vuelos reales.
+
+También se puede enviar un archivo real con curl:
 
 ```powershell
 curl.exe -X POST "http://127.0.0.1:5050/api/esp32/upload?filename=IMG_0142_1.tif" -H "Content-Type: application/octet-stream" --data-binary "@IMG_0142_1.tif"
